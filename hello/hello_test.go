@@ -11,9 +11,9 @@ func TestReturnHello(t *testing.T) {
 	}
 }
 
-func TestReturnHelloEmpty(t *testing.T) {
-	msg := ReturnHello("")
-	if msg != "Hello, " {
-		t.Fatalf(`ReturnHello("") = %q, want "Hello, "`, msg)
-	}
-}
+// func TestReturnHelloEmpty(t *testing.T) {
+// 	msg := ReturnHello("")
+// 	if msg != "Hello, " {
+// 		t.Fatalf(`ReturnHello("") = %q, want "Hello, "`, msg)
+// 	}
+// }
