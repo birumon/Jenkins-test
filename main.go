@@ -1,7 +1,11 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"jenkins_test/hello"
+)
 
 func main() {
-	fmt.Println("Hello, Jenkins!")
+	str := hello.ReturnHello("Jenkins!")
+	fmt.Println(str)
 }
