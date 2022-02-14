@@ -1,0 +1,24 @@
+pipeline {
+    agent any
+
+    stages {
+        
+        stage('Build') {
+            environment {
+                GO111MODULE = 'on'
+            }
+
+            steps {
+                sh 'go build'
+            }
+        }
+
+        stage('Release') {
+            steps {
+                sh 'mv ./jenkins_test build/package/'
+            }
+        }
+
+    }
+
+}
