@@ -1,11 +1,14 @@
 def versionTag = null
 pipeline {
     agent any
+    
+    environment {
+        imageName = "tmaxcloudck/network-hook"
+    }
 
     stages {
         stage('Prepare') {
             steps {
-                git branch: 'master', credentialsId: 'tmaxcloud-github', url: 'https://github.com/onemankim/Jenkins-test.git'
                 script {
                     versionTag = sh(returnStdout: true, script: "git tag --contains").trim()
                 }
@@ -14,9 +17,12 @@ pipeline {
 
         stage('Build') {
             when {
-                expression {
-                    return versionTag
-                }                
+                allOf {
+                    branch 'master'
+                    expression {
+                        return versionTag
+                    }
+                }
             }
             steps {
                 sh 'go build'
@@ -30,12 +36,22 @@ pipeline {
 
         stage('Build Image') {
             when {
-                expression {
-                    return versionTag
-                }                
+                allOf {
+                    branch 'master'
+                    expression {
+                        return versionTag
+                    }
+                }
             }
             steps {
-                echo 'lala'
+                dir("build/package"){
+                    sh 'pwd'
+                    echo '${versionTag}'
+                    sh """
+                      docker build -t ${imageName}:${versionTag} .
+                      docker push ${imageName}:${versionTag}
+                    """
+                }
             }
         }
     }
