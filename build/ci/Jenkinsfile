@@ -1,17 +1,40 @@
+def versionTag = nill
 pipeline {
     agent any
 
     stages {
-        stage('Build') {
+        stage('Prepare') {
             steps {
-                sh 'pwd'
-                sh 'go build'
+                git branch: 'master', credentialsId: 'tmaxcloud-github', url: 'https://github.com/onemankim/Jenkins-test.git'
+                script {
+                    versionTag = sh(returnStdout: true, script: "git tag --contains").trim()
+                }
             }
         }
 
-        stage('Release') {
+        stage('Build') {
+            when {
+                expression {
+                    return versionTag
+                }                
+            }
             steps {
-                sh 'mv ./jenkins_test build/package/'
+                sh 'go build'
+            }
+            post {
+                success {
+                    sh 'mv ./jenkins_test build/package/'
+                }
+            }
+        }
+
+        stage('Build Image') {
+            when {
+                expression {
+                    return versionTag
+                }                
+            }
+            steps {
             }
         }
     }
