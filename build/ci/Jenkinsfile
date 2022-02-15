@@ -1,4 +1,4 @@
-def versionTag = nill
+def versionTag = null
 pipeline {
     agent any
 
