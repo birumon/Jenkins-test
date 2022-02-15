@@ -43,12 +43,11 @@ pipeline {
             }
             steps {
                 dir("build/package"){
-                    sh 'pwd'
-                    echo '${versionTag}'
-                    sh """
-                      docker build -t ${imageName}:${versionTag} .
-                      docker push ${imageName}:${versionTag}
-                    """
+                    echo 'Building ${imageName}:${versionTag}'
+                    script {
+                        def dockerImage = docker.build("${imageName}:${versionTag}")
+                        dockerImage.push()
+                    }
                 }
             }
         }
