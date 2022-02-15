@@ -2,13 +2,15 @@ pipeline {
     agent any
 
     stages {
-        
         stage('Build') {
             environment {
+                PATH = "$PATH:/usr/local/go/bin"
+                GOPATH = "/home/jenkins/workspace"
                 GO111MODULE = 'on'
             }
 
             steps {
+                sh 'pwd'
                 sh 'go build'
             }
         }
@@ -18,7 +20,5 @@ pipeline {
                 sh 'mv ./jenkins_test build/package/'
             }
         }
-
     }
-
 }
