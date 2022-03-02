@@ -17,7 +17,10 @@ pipeline {
 
         stage('Build') {
             when {
-                allOf {
+                allOf{
+                    expression {
+                        env.GIT_BRANCH == 'origin/master'
+                    }
                     expression {
                         return versionTag
                     }
@@ -35,7 +38,10 @@ pipeline {
 
         stage('Build Image') {
             when {
-                allOf {
+                allOf{
+                    expression {
+                        env.GIT_BRANCH == 'origin/master'
+                    }
                     expression {
                         return versionTag
                     }
