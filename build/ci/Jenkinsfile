@@ -82,6 +82,5 @@ spec:
                 --destination=${imageName}:${version}'
                 }
             }
-        }
     }
 }
