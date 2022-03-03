@@ -7,25 +7,19 @@ pipeline {
     }
 
     stages {
-        stage('Prepare') {
-            agent {
-                label 'container'
-            }
-            steps {
-                script {
-                    versionTag = sh(returnStdout: true, script: "git tag --contains").trim()
-                }
-            }
-        }
-
         stage('Test') {
             agent {
                 label 'container'
             }
             environment {
+                PATH = '$PATH:/usr/local/go/bin'
+                GOPATH = '/gome/jenkins/workspace'
                 GO111MODULE = 'on'
             }
             steps {
+                script {
+                    versionTag = sh(returnStdout: true, script: "git tag --contains").trim()
+                }
                 sh 'golangci-lint run'
                 sh 'go vet ./...'
                 sh 'go test -cover ./...'
