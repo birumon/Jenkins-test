@@ -23,7 +23,7 @@ pipeline {
                 label 'container'
             }
             steps {
-                sh 'golangci-lint run'
+                //sh 'golangci-lint run'
                 sh 'go vet ./...'
                 sh 'go test -cover ./...'
             }
