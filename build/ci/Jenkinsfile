@@ -22,10 +22,13 @@ pipeline {
             agent {
                 label 'container'
             }
+            environment {
+                GO111MODULE = 'on'
+            }
             steps {
-                //sh 'golangci-lint run'
-                //sh 'go vet ./...'
-                //sh 'go test -cover ./...'
+                sh 'golangci-lint run'
+                sh 'go vet ./...'
+                sh 'go test -cover ./...'
             }
         }
 
