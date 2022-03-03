@@ -1,13 +1,17 @@
 def versionTag = null
 pipeline {
-    agent any
+    agent none
     
     environment {
-        imageName = "tmaxcloudck/network-hook"
+        imageName = "tmaxcloudck/stonelb"
+        version = "v0.0.0-ci-dev"
     }
 
     stages {
         stage('Prepare') {
+            agent {
+                label 'container'
+            }
             steps {
                 script {
                     versionTag = sh(returnStdout: true, script: "git tag --contains").trim()
@@ -15,24 +19,14 @@ pipeline {
             }
         }
 
-        stage('Build') {
-            when {
-                allOf{
-                    expression {
-                        env.GIT_BRANCH == 'origin/master'
-                    }
-                    expression {
-                        return versionTag
-                    }
-                }
+        stage('Test') {
+            agent {
+                label 'container'
             }
             steps {
-                sh 'go build'
-            }
-            post {
-                success {
-                    sh 'mv ./jenkins_test build/package/'
-                }
+                sh 'golangci-lint run'
+                sh 'go vet ./...'
+                sh 'go test -cover ./...'
             }
         }
 
@@ -47,13 +41,47 @@ pipeline {
                     }
                 }
             }
+            agent {
+                kubernetes {
+                    yaml """
+apiVersion: v1
+kind: Pod
+metadata:
+  name: kaniko
+  namespace: jenkins
+spec:
+  containers:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    command:
+    - sleep
+    args:
+    - 9999999
+    env:
+      - name: GIT_TOKEN
+        valueFrom:
+          secretKeyRef:
+            name: github-token
+            key: GIT_TOKEN
+    volumeMounts:
+    - name: docker-config
+      mountPath: "/kaniko/.docker"
+  restartPolicy: Never
+  volumes:
+  - name: docker-config
+    secret:
+      secretName: docker-regcred
+      items:
+        - key: .dockerconfigjson
+          path: config.json
+                    """
+                }
+            }
             steps {
-                dir("build/package"){
-                    echo 'Building ${imageName}:${versionTag}'
-                    script {
-                        def dockerImage = docker.build("${imageName}:${versionTag}")
-                        dockerImage.push()
-                    }
+                sh '/kaniko/executor --dockerfile=./build/package/Dockerfile \
+                --context=git://github.com/onemankim/Jenkins-test.git#refs/heads/master \
+                --destination=${imageName}:${version}
+                '
                 }
             }
         }
