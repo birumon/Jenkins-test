@@ -7,22 +7,15 @@ pipeline {
     }
 
     stages {
-        stage('Test') {
+        stage('Prepare') {
             agent {
                 label 'container'
-            }
-            environment {
-                PATH = '$PATH:/usr/local/go/bin'
-                GOPATH = '/gome/jenkins/workspace'
-                GO111MODULE = 'on'
             }
             steps {
                 script {
                     versionTag = sh(returnStdout: true, script: "git tag --contains").trim()
                 }
-                sh 'golangci-lint run'
-                sh 'go vet ./...'
-                sh 'go test -cover ./...'
+                echo "Tagged version: $versionTag"
             }
         }
 
@@ -74,10 +67,14 @@ spec:
                 }
             }
             steps {
-                sh '/kaniko/executor --dockerfile=./build/package/Dockerfile \
-                --context=git://github.com/onemankim/Jenkins-test.git#refs/heads/master \
-                --destination=${imageName}:${version}'
+                container(name: 'kaniko', shell: '/busybox/sh') {
+                    withEnv(['PATH+EXTRA=/busybox']) {
+                    sh "/kaniko/executor --dockerfile=./build/package/Dockerfile \
+                    --context=git://github.com/onemankim/Jenkins-test.git#refs/heads/master \
+                    --destination=${imageName}:$versionTag"
+                    }
                 }
             }
+        }
     }
 }
