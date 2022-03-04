@@ -18,6 +18,22 @@ pipeline {
                 echo "Tagged version: $versionTag"
             }
         }
+        
+        stage('Test') {
+            agent {
+                label 'container'
+            }
+            steps {
+                withEnv(['PATH+EXTRA=/usr/local/go/bin',
+                'GOPATH=/home/jenkins/workspace',
+                'GO111MODULE=on']){
+                    echo "Running golangci-lint..."
+                    sh 'golangci-lint run'
+                    echo "Running go test..."
+                    sh 'go test -cover ./...'
+                }
+            }
+        }
 
         stage('Build Image') {
             when {
